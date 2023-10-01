@@ -13,12 +13,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static sql.parser.Parser.Schemata;
+import static sql.parser.Parser.schemata;
 import static sql.parser.Parser.path;
+import static java.lang.System.out;
 
-public class Create {
+public class Creation {
     static void createSchema(String sql) {
         try {
             CreateSchema schema = (CreateSchema) CCJSqlParserUtil.parse(sql);
@@ -33,10 +35,10 @@ public class Create {
     static void createSchemaOnDisk(Schema schema) {
         File dir = new File(path + schema.name);
         if (dir.mkdir()) {
-            Schemata.put(schema.name, schema);
-            System.out.println("Schema " + schema.name + " created");
+            schemata.put(schema.name, schema);
+            out.println("Schema " + schema.name + " created");
         } else {
-            System.out.println("Failed to create " + schema.name);
+            out.println("Failed to create " + schema.name);
         }
     }
 
@@ -52,29 +54,30 @@ public class Create {
         }
     }
 
+    // 根据create table语句创建一个树为空的Table对象
     public static Table generateTable(CreateTable table) {
-        Map<String, ColumnDefinition> cols = new HashMap<>();
+        Map<String, String> cols = new LinkedHashMap<>();
         String name = table.getTable().getName();
 
         for (ColumnDefinition col : table.getColumnDefinitions()) {
-            cols.put(col.getColumnName(), col);
+            cols.put(col.getColumnName(), col.getColDataType().toString());
         }
         return new Table(name, cols);
     }
 
     static void createTableOnDisk(Table table, String sql, String schemaName) {
-        File dict = new File(path + schemaName + "/" + table.name + ".dict");
+        File dict = new File(path + schemaName + "/" + table.name + ".dict"); // 存放table的元数据
         File data = new File(path + schemaName + "/" + table.name);
         try {
             if (dict.createNewFile() && data.createNewFile()) {
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(dict))) {
-                    bw.write(sql);
+                    bw.write(sql); // 便于再次读入时使用JSQLParser
                     bw.newLine();
                 }
-                System.out.println("Table " + table.name + " created");
+                out.println("Table " + table.name + " created");
                 addTableToSchema(table, schemaName);
             } else {
-                System.out.println("Table " + table.name + " already exists");
+                out.println("Table " + table.name + " already exists");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -82,6 +85,6 @@ public class Create {
     }
 
     public static void addTableToSchema(Table table, String schemaName) {
-        Schemata.get(schemaName).tables.put(table.name, table);
+        schemata.get(schemaName).tables.put(table.name, table);
     }
 }

@@ -6,10 +6,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class UI {
-    public static void printPrompt() { System.out.print("> "); }
+import static java.lang.System.out;
 
-    public static void printError() { System.out.println("Syntax error"); }
+public class UI {
+    public static void printPrompt() { out.print("> "); }
+
+    public static void printError() { out.println("Syntax error"); }
 
     public static void main(String[] args) {
         Initializer.openSchemata();
@@ -18,12 +20,12 @@ public class UI {
                 printPrompt();
                 StringBuilder sql = new StringBuilder();
                 char c;
-                while ((c = (char) br.read()) != ';') {
+                while ((c = (char) br.read()) != ';') { // 分号标志语句结束
                     sql.append(c);
                 }
                 if (sql.toString().equalsIgnoreCase("quit")) return;
 
-                Parser.parse(sql.toString());
+                Parser.parse(sql.toString()); // 解析之后调用对应方法
             }
         } catch (IOException e) {
             e.printStackTrace();

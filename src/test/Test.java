@@ -10,47 +10,54 @@ import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.Index;
 import net.sf.jsqlparser.statement.insert.Insert;
 
+import static java.lang.System.out;
+
 public class Test {
     public static void main(String[] args) throws JSQLParserException {
-        sqlInsert();
+        sqlCreate();
+        //sqlInsert();
     }
 
     static void sqlCreate() throws JSQLParserException {
         String s1 = """
-                CREATE TABLE test.singers (
+                CREATE TABLE music.singers (
                 	id int,
                 	name char,
-                	genre char,
-                	primary key (id)
+                	genre char
                 );""";
         CreateTable table = (CreateTable) CCJSqlParserUtil.parse(s1);
         for (ColumnDefinition col : table.getColumnDefinitions()) {
-            System.out.println(col.getColumnName());
-            System.out.println(col.getColDataType());
+            out.println(col.getColumnName()); // id
+            out.println(col.getColDataType()); // int
         }
-        System.out.println();
+        out.println();
         for (Index index : table.getIndexes()) {
-            System.out.println(index.getName());
-            System.out.println(index.getType());
-            System.out.println(index.getColumnsNames());
-            System.out.println(index.getColumnsNames().get(0));
+            out.println(index.getName()); // null
+            out.println(index.getType()); // primary key
+            out.println(index.getColumnsNames()); // [id]
+            out.println(index.getColumnsNames().get(0)); // id
         }
     }
 
     static void sqlInsert() throws JSQLParserException {
         String s2 = """
-                insert into test.singers (id, name, genre)
+                insert into music.singers (id, name, genre)
                 values (1, 'David Bowie', 'Glam');
                 """;
         Insert insert = (Insert) CCJSqlParserUtil.parse(s2);
-        System.out.println(insert.getColumns());
-        System.out.println(insert.getValues());
-        System.out.println(insert.getValues().getExpressions().get(1).getClass());
-        System.out.println(insert.getValues().getExpressions().get(1));
+        out.println(insert.getColumns().get(0).getColumnName()); // class net.sf.jsqlparser.schema.Column
+        out.println(insert.getColumns().get(0)); // id
+        out.println(insert.getColumns().size()); // 3
+        out.println(insert.getValues().getExpressions().size()); // 3
+        out.println(insert.getColumns()); // id, name, genre
+        out.println(insert.getValues()); // VALUES (1, 'David Bowie', 'Glam')
+        out.println(insert.getValues().getExpressions().get(1)); // 'David Bowie'
+        out.println(insert.getValues().getExpressions()); // (1, 'David Bowie', 'Glam')
 
         Expression expr = insert.getValues().getExpressions().get(0);
-        System.out.println(expr instanceof LongValue);
+        // expr super class: Expression
+        out.println(expr instanceof LongValue); // true
         int id = Integer.parseInt(expr.toString());
-        System.out.println(id);
+        out.println(id); // 1
     }
 }

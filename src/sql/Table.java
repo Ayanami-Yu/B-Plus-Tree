@@ -1,23 +1,44 @@
 package sql;
 
 import concurrent.Tree;
-import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 
+import java.io.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
-public class Table {
-    final int factor = 5;
+public class Table { // 一张表就是一棵以主键id为key的树
+    static final int FACTOR = 5;
     public String name;
-    Map<String, ColumnDefinition> cols;
-    Tree<Integer, Page> tree;
+    Map<String, String> cols; // (name, datatype)
+    public Tree<Integer, Page> tree;
 
-    public Table(String name, Map<String, ColumnDefinition> cols) {
+    public Table(String name, Map<String, String> cols) {
         this.name = name;
         this.cols = cols;
-        tree = new Tree<>(factor);
+        tree = new Tree<>(FACTOR);
     }
 
-    public void insert(Page page) {
-        int key = page.getPK();
+    public void loadDataOnTree(File data) { // todo test
+        List<String> colNames = new LinkedList<>();
+        cols.forEach((colName, colType) -> {
+            colNames.add(colName); // add顺序与cols的put顺序相同
+        });
+
+        try (BufferedReader br = new BufferedReader(new FileReader(data))) {
+            String ln;
+            do {
+                Page page = new Page();
+                int idx = 0;
+                while ((ln = br.readLine()) != null && !ln.equals(";")) {
+                    page.attrs.put(colNames.get(idx++), ln);
+                }
+                tree.insert(page.getID(), page);
+            } while (ln != null);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

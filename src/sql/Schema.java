@@ -12,6 +12,6 @@ public class Schema {
 
     public Schema(String name) {
         this.name = name;
-        tables = new LinkedHashMap<>(); // tables会在Initializer中加入
+        tables = new HashMap<>(); // tables会在Initializer中加入
     }
 }

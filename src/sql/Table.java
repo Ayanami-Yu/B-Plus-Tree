@@ -14,27 +14,23 @@ public class Table { // 一张表就是一棵以主键id为key的树
     Map<String, String> cols; // (name, datatype)
     public Tree<Integer, Page> tree;
 
-    public Table(String name, Map<String, String> cols) {
+    public Table(String name, Map<String, String> cols) { // LinkedHashMap
         this.name = name;
         this.cols = cols;
         tree = new Tree<>(FACTOR);
     }
 
-    public void loadDataOnTree(File data) { // todo test
-        List<String> colNames = new LinkedList<>();
-        cols.forEach((colName, colType) -> {
-            colNames.add(colName); // add顺序与cols的put顺序相同
-        });
-
+    public void loadDataOnTree(File data) {
         try (BufferedReader br = new BufferedReader(new FileReader(data))) {
             String ln;
             do {
                 Page page = new Page();
-                int idx = 0;
                 while ((ln = br.readLine()) != null && !ln.equals(";")) {
-                    page.attrs.put(colNames.get(idx++), ln);
+                    page.attrs.add(ln);
                 }
-                tree.insert(page.getID(), page);
+                if (ln != null) {
+                    tree.insert(page.getID(), page);
+                }
             } while (ln != null);
 
         } catch (IOException e) {

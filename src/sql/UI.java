@@ -15,7 +15,9 @@ public class UI {
 
     public static void main(String[] args) {
         Initializer.openSchemata();
+
         try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
+
             while (true) {
                 printPrompt();
                 StringBuilder sql = new StringBuilder();
@@ -27,6 +29,7 @@ public class UI {
 
                 Parser.parse(sql.toString()); // 解析之后调用对应方法
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

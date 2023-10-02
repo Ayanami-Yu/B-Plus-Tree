@@ -2,22 +2,19 @@ package sql;
 
 import net.sf.jsqlparser.statement.insert.Insert;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static sql.parser.Parser.schemata;
 
 public class Page { // 相当于row
-    Map<String, String> attrs; // (name, value)
+    List<String> attrs; // values without column names
 
     public Page() {
-        attrs = new LinkedHashMap<>(); // linked保证遍历顺序与put顺序相同
+        attrs = new ArrayList<>();
     }
 
     public Page(Insert insert) {
-        attrs = new LinkedHashMap<>();
+        attrs = new ArrayList<>();
         initPage(insert);
     }
 
@@ -43,13 +40,14 @@ public class Page { // 相当于row
         }
 
         for (int i = 0; i < size; i++) {
-            attrs.put(insert.getColumns().get(i).toString(),
-                    insert.getValues().getExpressions().get(i).toString());
+            attrs.add(insert.getValues().getExpressions().get(i).toString());
         }
     }
 
+    // 检查是否所有column都指定了值
     boolean verifyPage(Table table, Insert insert) {
         boolean verified = true;
+
         if (insert.getColumns().size() != table.cols.size()) {
             verified = false;
         } else {
@@ -61,13 +59,11 @@ public class Page { // 相当于row
                 }
             }
         }
+
         return verified;
     }
 
     public Integer getID() {
-        if (attrs.get("id") == null) {
-            throw new RuntimeException("Error: No column is named 'id'");
-        }
-        return Integer.parseInt(attrs.get("id"));
+        return Integer.parseInt(attrs.get(0));
     }
 }

@@ -34,6 +34,7 @@ public class Creation {
 
     static void createSchemaOnDisk(Schema schema) {
         File dir = new File(path + schema.name);
+
         if (dir.mkdir()) {
             schemata.put(schema.name, schema);
             out.println("Schema " + schema.name + " created");
@@ -62,13 +63,16 @@ public class Creation {
         for (ColumnDefinition col : table.getColumnDefinitions()) {
             cols.put(col.getColumnName(), col.getColDataType().toString());
         }
+
         return new Table(name, cols);
     }
 
     static void createTableOnDisk(Table table, String sql, String schemaName) {
         File dict = new File(path + schemaName + "/" + table.name + ".dict"); // 存放table的元数据
         File data = new File(path + schemaName + "/" + table.name);
+
         try {
+
             if (dict.createNewFile() && data.createNewFile()) {
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(dict))) {
                     bw.write(sql); // 便于再次读入时使用JSQLParser
@@ -79,6 +83,7 @@ public class Creation {
             } else {
                 out.println("Table " + table.name + " already exists");
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

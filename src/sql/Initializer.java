@@ -18,16 +18,19 @@ public class Initializer {
     static void openSchemata() {
         File db = new File(Parser.path);
         File[] schemata = db.listFiles(); // 打开DB文件夹下的所有子文件夹
+
         if (schemata != null) {
             for (File schema : schemata) {
-                if (schema.isDirectory())
+                if (schema.isDirectory()) {
                     openSchema(schema.getName());
+                }
             }
         }
     }
 
     static void openSchema(String schemaName) {
         File dir = new File(Parser.path + schemaName);
+
         if (dir.exists() && dir.isDirectory()) {
             Parser.schemata.put(schemaName, new Schema(schemaName)); // 生成对象便于程序管理
             out.println("Successfully opened " + schemaName);
@@ -39,16 +42,19 @@ public class Initializer {
 
     static void openTables(File dir) {
         File[] tables = dir.listFiles();
+
         if (tables != null) {
             for (File table : tables) {
                 if (table.getName().contains(".dict")) {
                     try (BufferedReader br = new BufferedReader(new FileReader(table))) {
+
                         int c;
                         StringBuilder sql = new StringBuilder();
                         while ((c = br.read()) != -1) {
                             sql.append((char) c);
                         }
                         loadTable(String.valueOf(sql)); // 创建Table对象并加入tables中
+
                     } catch (IOException e) {
                         out.println("Failed to load " + table.getName());
                         e.printStackTrace();
@@ -60,6 +66,7 @@ public class Initializer {
 
     static void loadTable(String sql) {
         try {
+
             CreateTable stmt = (CreateTable) CCJSqlParserUtil.parse(sql);
             // 元数据在dict文件中的存储方式是完整的SQL语句
             Table table = Creation.generateTable(stmt);
@@ -73,6 +80,7 @@ public class Initializer {
             table.loadDataOnTree(data);
 
             out.println("Table " + stmt.getTable().getName() + " loaded");
+
         } catch (JSQLParserException e) {
             e.printStackTrace();
         }

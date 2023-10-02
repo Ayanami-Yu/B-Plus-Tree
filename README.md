@@ -10,6 +10,8 @@ Currently supported SQL statements are as listed below:
 CREATE SCHEMA schema_name;
 ```
 
+Remember: Switching "SCHEMA" to "DATABASE" won't work. This also applies elsewhere like DROP statements.
+
 ```
 CREATE TABLE schema_name.table_name (
     id int,
@@ -31,6 +33,19 @@ CREATE TABLE CUSTOMERS(
    SALARY      DECIMAL (18, 2),
    PRIMARY KEY (ID)
 );
+```
+
+### SELECT
+```
+SELECT column1, column2, columnN
+FROM schema_name.table_name;
+```
+
+1. You can only specify one table in standard select-from statement. Otherwise, only the first table will be recognized.
+2. Currently, you should specify the schema containing this table, because I haven't implemented USE SCHEMA statement.
+
+```
+SELECT * FROM schma_name.table_name;
 ```
 
 ### INSERT

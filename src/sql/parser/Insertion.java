@@ -20,19 +20,21 @@ import static sql.parser.Parser.schemata;
 public class Insertion {
     static void insertInto(String sql) {
         try {
+
             Insert insert = (Insert) CCJSqlParserUtil.parse(sql);
             Schema schema = schemata.get(insert.getTable().getSchemaName());
             if (schema == null) {
                 out.println("Schema doesn't exist");
                 return;
             }
+
             Table table = schema.tables.get(insert.getTable().getName());
             if (table == null) {
                 out.println("Table doesn't exist");
                 return;
             }
-            Page page = new Page(insert);
 
+            Page page = new Page(insert);
             table.tree.insert(page.getID(), page);
             insertIntoDisk(insert);
             out.println("Record successfully inserted");
@@ -48,7 +50,9 @@ public class Insertion {
         String schemaName = insert.getTable().getSchemaName(),
                 tableName = insert.getTable().getName();
         File data = new File(path + schemaName + "/" + tableName);
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(data, true))) {
+
             // 每行为一个记录的一条属性，记录之间以分号分隔
             for (Expression val : insert.getValues().getExpressions()) {
                 bw.write(val.toString());

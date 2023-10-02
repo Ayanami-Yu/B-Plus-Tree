@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLException;
 
 import static java.lang.System.out;
 import static sql.parser.Parser.path;
@@ -20,26 +21,16 @@ import static sql.parser.Parser.schemata;
 public class Insertion {
     static void insertInto(String sql) {
         try {
-
             Insert insert = (Insert) CCJSqlParserUtil.parse(sql);
-            Schema schema = schemata.get(insert.getTable().getSchemaName());
-            if (schema == null) {
-                out.println("Schema doesn't exist");
-                return;
-            }
-
-            Table table = schema.tables.get(insert.getTable().getName());
-            if (table == null) {
-                out.println("Table doesn't exist");
-                return;
-            }
+            Schema schema = Schema.getSchema(insert.getTable().getSchemaName());
+            Table table = Table.getTable(schema, insert.getTable().getName());
 
             Page page = new Page(insert);
             table.tree.insert(page.getID(), page);
             insertIntoDisk(insert);
-            out.println("Record successfully inserted");
 
-        } catch (JSQLParserException | RuntimeException e) {
+            out.println("Record successfully inserted");
+        } catch (JSQLParserException | SQLException e) {
             e.printStackTrace();
         }
     }
@@ -60,7 +51,6 @@ public class Insertion {
             }
             bw.write(";");
             bw.newLine();
-
         } catch (IOException e) {
             e.printStackTrace();
         }

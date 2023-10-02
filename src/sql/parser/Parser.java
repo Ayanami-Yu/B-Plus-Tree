@@ -20,7 +20,6 @@ public class Parser {
 
     public static void parse(String sql) { // todo drop, select
         try {
-
             // 关键字都会被转换为大写
             Statement stmt = CCJSqlParserUtil.parse(sql);
             String[] stmtType = stmt.toString().split(" ", 3);

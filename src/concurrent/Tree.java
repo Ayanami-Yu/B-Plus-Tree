@@ -63,7 +63,7 @@ public class Tree<K extends Comparable<? super K>, V> {
     @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();
-        if (root.get().keys.size() == 0) return null;
+        if (root.get().keys.isEmpty()) return null;
         printTree(sb, root.get());
         return sb.toString();
     }

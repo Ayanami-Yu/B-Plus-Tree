@@ -57,11 +57,12 @@ public class Creation {
 
     // 根据create table语句创建一个树为空的Table对象
     public static Table generateTable(CreateTable table) {
-        Map<String, String> cols = new LinkedHashMap<>();
+        Map<String, Integer> cols = new HashMap<>();
         String name = table.getTable().getName();
 
+        int idx = 0;
         for (ColumnDefinition col : table.getColumnDefinitions()) {
-            cols.put(col.getColumnName(), col.getColDataType().toString());
+            cols.put(col.getColumnName(), idx++); // idx为该column在Page的List中的下标
         }
 
         return new Table(name, cols);
@@ -72,7 +73,6 @@ public class Creation {
         File data = new File(path + schemaName + "/" + table.name);
 
         try {
-
             if (dict.createNewFile() && data.createNewFile()) {
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(dict))) {
                     bw.write(sql); // 便于再次读入时使用JSQLParser
@@ -83,7 +83,6 @@ public class Creation {
             } else {
                 out.println("Table " + table.name + " already exists");
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }

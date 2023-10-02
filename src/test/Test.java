@@ -16,6 +16,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 import static java.lang.System.out;
@@ -80,17 +81,20 @@ public class Test {
     }
 
     static void sqlSelect() throws JSQLParserException {
-        String s = """
+        String s1 = """
                 SELECT name, genre
                 FROM music.singers;
+                """;
+        String s = """
+                SELECT * FROM music.singers;
                 """;
         Select select = (Select) CCJSqlParserUtil.parse(s);
         out.println(select.getPlainSelect().getDistinct()); // null
         out.println(select.getPlainSelect().getFirst()); // null
         out.println(select.getPlainSelect().getFromItem()); // music.singers
-        out.println(select.getPlainSelect().getSelectItems()); // [name, genre]
-        out.println(select.getPlainSelect().getSelectItems().get(0)); // name
-        out.println(select.getPlainSelect().getSelectItems().get(1)); // genre
+        out.println(select.getPlainSelect().getSelectItems()); // [name, genre] // [*]
+        out.println(select.getPlainSelect().getSelectItems().get(0)); // name // *
+        //out.println(select.getPlainSelect().getSelectItems().get(1)); // genre
     }
 
     static void sqlUse() throws JSQLParserException {

@@ -132,7 +132,7 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
         try {
             if (dep == 0 && this != tree.root.get()) {
                 st = Status.RETRY;
-            } else if (dep == 0 && keys.size() == 0) {
+            } else if (dep == 0 && keys.isEmpty()) {
                 st = Status.EMPTY;
             } else {
                 if (safeForDelete()) unlockAncestors();

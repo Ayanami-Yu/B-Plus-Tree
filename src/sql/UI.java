@@ -17,7 +17,6 @@ public class UI {
         Initializer.openSchemata();
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
-
             while (true) {
                 printPrompt();
                 StringBuilder sql = new StringBuilder();

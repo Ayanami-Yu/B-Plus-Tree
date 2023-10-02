@@ -53,7 +53,7 @@ public class Page { // 相当于row
         } else {
             for (int i = 0; i < table.cols.size(); i++) {
                 String col = insert.getColumns().get(i).toString();
-                if (!table.cols.containsKey(col)) {
+                if (!table.cols.containsKey(col)) { // Table的元数据中是否含有该column
                     verified = false;
                     break;
                 }

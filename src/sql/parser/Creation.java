@@ -2,6 +2,7 @@ package sql.parser;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.schema.CreateSchema;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -12,6 +13,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -21,6 +23,7 @@ import static sql.parser.Parser.path;
 import static java.lang.System.out;
 
 public class Creation {
+
     static void createSchema(String sql) {
         try {
             CreateSchema schema = (CreateSchema) CCJSqlParserUtil.parse(sql);
@@ -42,6 +45,7 @@ public class Creation {
             out.println("Failed to create " + schema.name);
         }
     }
+
 
     static void createTable(String sql) {
         try {
@@ -90,5 +94,21 @@ public class Creation {
 
     public static void addTableToSchema(Table table, String schemaName) {
         schemata.get(schemaName).tables.put(table.name, table);
+    }
+
+
+    public static void createIndex(String sql) {
+        try {
+            CreateIndex createIndex = (CreateIndex) CCJSqlParserUtil.parse(sql);
+            String schemaName = createIndex.getTable().getSchemaName();
+            String tableName = createIndex.getTable().getName();
+
+            Table table = schemata.get(schemaName).tables.get(tableName);
+            table.createSecondaryTree(createIndex);
+
+            out.println("Secondary index " + createIndex.getIndex().getName() + " created");
+        } catch (JSQLParserException | SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

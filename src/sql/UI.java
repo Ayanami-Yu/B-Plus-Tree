@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import static java.lang.System.out;
 
 public class UI {
+
     public static void printPrompt() { out.print("> "); }
 
     public static void printError() { out.println("Syntax error"); }
@@ -21,12 +22,12 @@ public class UI {
                 printPrompt();
                 StringBuilder sql = new StringBuilder();
                 char c;
-                while ((c = (char) br.read()) != ';') { // 分号标志语句结束
+                while ((c = (char) br.read()) != ';') {      // 分号标志语句结束
                     sql.append(c);
                 }
-                if (sql.toString().equalsIgnoreCase("quit")) return;
+                if (sql.toString().toLowerCase().contains("quit")) return;
 
-                Parser.parse(sql.toString()); // 解析之后调用对应方法
+                Parser.parse(sql.toString());                // 解析之后调用对应方法
             }
 
         } catch (IOException e) {

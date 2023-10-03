@@ -4,9 +4,12 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.UseStatement;
+import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.Index;
@@ -23,7 +26,7 @@ import static java.lang.System.out;
 
 public class Test {
     public static void main(String[] args) throws JSQLParserException {
-        sqlSelect();
+
     }
 
     static void sqlCreate() throws JSQLParserException {
@@ -81,11 +84,12 @@ public class Test {
     }
 
     static void sqlSelect() throws JSQLParserException {
-        String s1 = """
-                SELECT name, genre
-                FROM music.singers;
-                """;
         String s = """
+                SELECT name, genre
+                FROM music.singers
+                WHERE id = 3;
+                """;
+        String s1 = """
                 SELECT * FROM music.singers;
                 """;
         Select select = (Select) CCJSqlParserUtil.parse(s);
@@ -95,6 +99,11 @@ public class Test {
         out.println(select.getPlainSelect().getSelectItems()); // [name, genre] // [*]
         out.println(select.getPlainSelect().getSelectItems().get(0)); // name // *
         //out.println(select.getPlainSelect().getSelectItems().get(1)); // genre
+        out.println(select.getPlainSelect().getWhere().getClass()); // null // id = 3
+        Expression expr = select.getPlainSelect().getWhere();
+        if (expr instanceof EqualsTo eq) {
+            out.println(eq.getRightExpression());
+        }
     }
 
     static void sqlUse() throws JSQLParserException {
@@ -103,5 +112,22 @@ public class Test {
                 """;
         UseStatement use = (UseStatement) CCJSqlParserUtil.parse(s1);
         out.println(use.getName()); // music
+    }
+
+    static void sqlIndex() throws JSQLParserException {
+        String s = """
+                CREATE INDEX index_name
+                ON schema_name.table_name (column_name1, column_name2);
+                """;
+        CreateIndex createIndex = (CreateIndex) CCJSqlParserUtil.parse(s);
+        out.println(createIndex.getTable().getName()); // table_name
+        out.println(createIndex.getIndex().getName()); // index_name
+        out.println(createIndex.getIndex().getType()); // null
+        out.println(createIndex.getIndex().getIndexSpec()); // null
+        out.println(createIndex.getIndex().getColumnsNames()); // [column_name1, column_name2]
+        out.println(createIndex.getIndex().getColumns()); // [column_name1, column_name2]
+        out.println(createIndex.getIndex().getNameParts()); // [index_name]
+        out.println(createIndex.getIndex().getColumnsNames().get(0)); // column_name1
+        out.println(createIndex.getTable().getSchemaName()); // schema_name
     }
 }

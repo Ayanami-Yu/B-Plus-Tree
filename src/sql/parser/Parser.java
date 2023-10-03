@@ -9,8 +9,7 @@ import sql.UI;
 import java.util.HashMap;
 import java.util.Map;
 
-import static sql.parser.Creation.createSchema;
-import static sql.parser.Creation.createTable;
+import static sql.parser.Creation.*;
 import static sql.parser.Insertion.insertInto;
 import static sql.parser.Selection.selectFrom;
 
@@ -18,7 +17,7 @@ public class Parser {
     public final static String path = "./DB/";
     public static Map<String, Schema> schemata = new HashMap<>();
 
-    public static void parse(String sql) { // todo drop, select
+    public static void parse(String sql) { // todo drop
         try {
             // 关键字都会被转换为大写
             Statement stmt = CCJSqlParserUtil.parse(sql);
@@ -28,6 +27,7 @@ public class Parser {
                     switch (stmtType[1]) {
                         case "SCHEMA" -> createSchema(sql);
                         case "TABLE" -> createTable(sql);
+                        case "INDEX" -> createIndex(sql);
                     }
                 }
                 case "INSERT" -> insertInto(sql);
@@ -35,7 +35,6 @@ public class Parser {
 
                 default -> UI.printError();
             }
-
         } catch (JSQLParserException e) {
             e.printStackTrace();
         }

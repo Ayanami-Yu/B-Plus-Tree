@@ -49,6 +49,12 @@ public abstract class Node<K extends Comparable<? super K>, V> {
 
     int getIdx(K key) {
         int i = Collections.binarySearch(keys, key);
+        if (i >= 0) {
+            K tmp = keys.get(i);
+            while (i - 1 >= 0 && keys.get(i - 1).equals(tmp)) { // 有重复键时应取到第一个key
+                i--;
+            }
+        }
         return i >= 0 ? i : -i - 1;
     }
 

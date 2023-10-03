@@ -19,6 +19,7 @@ import static sql.parser.Parser.path;
 import static sql.parser.Parser.schemata;
 
 public class Insertion {
+
     static void insertInto(String sql) {
         try {
             Insert insert = (Insert) CCJSqlParserUtil.parse(sql);
@@ -38,8 +39,8 @@ public class Insertion {
 
 
     static void insertIntoDisk(Insert insert) {
-        String schemaName = insert.getTable().getSchemaName(),
-                tableName = insert.getTable().getName();
+        String schemaName = insert.getTable().getSchemaName();
+        String tableName = insert.getTable().getName();
         File data = new File(path + schemaName + "/" + tableName);
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(data, true))) {

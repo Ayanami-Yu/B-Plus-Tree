@@ -44,6 +44,23 @@ public class ConcurrentTest {
         System.out.println(t);
     }
 
+    @Test
+    void test2() {
+        Tree<Integer, Integer> t = new Tree<>(5);
+        for (int i = 0; i < 4; i++) {
+            t.insert(i, i);
+            t.insert(i, i);
+            t.insert(i, i);
+        }
+        System.out.println(t.getRange(4, 4));
+        System.out.println(t.getRange(3, 3));
+        System.out.println(t.getRange(2, 2));
+        System.out.println(t.getRange(1, 1));
+        System.out.println(t.getRange(0, 0));
+        System.out.println(t.getRange(-1, -1));
+        System.out.println(t.getRange(1, 3));
+    }
+
     void testInsert1(Tree<Integer, Integer> t) {
         for (int i = 1; i < 200; i += 2) {
             t.insert(i, i);

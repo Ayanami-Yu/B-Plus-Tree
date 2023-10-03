@@ -120,7 +120,9 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
             return new Info<>(Status.RETRY, null);
         } else {
             List<V> res = new LinkedList<>();
-            getList(start, end, this, res, 0);
+            if (end.compareTo(keys.get(0)) >= 0) {      // 当end比最小键还小时应返回空表
+                getList(start, end, this, res, 0);
+            }
             return new Info<>(Status.SUCCESS, res);
         }
     }
@@ -219,19 +221,24 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
         return Status.SUCCESS;
     }
 
+
+    // 闭区间，同时取到start和end对应的值
     void getList(K start, K end, Leaf<K, V> preLeaf, List<V> res, int seq) {
         int from, to;
         if (seq == 0) {
-            from = getIdx(start);
+            from = getIdx(start);   // 在start为重复键时应取到对应的第一个val
         } else {
             getrLock().lock();
             preLeaf.getrLock().unlock();
             from = 0;
         }
-        to = getIdx(end);
-        res.addAll(vals.subList(from, to));
+        to = from;
+        while (to < keys.size() && keys.get(to).compareTo(end) <= 0) {  // 在end为重复键时应取到对应的最后一个val
+            res.add(vals.get(to++));
+        }
+
         if (to >= vals.size() && next != null) {
-            ((Leaf<K, V>)next).getList(start, end, this, res, seq + 1);
+            ((Leaf<K, V>) next).getList(start, end, this, res, seq + 1);
         } else {
             getrLock().unlock();
         }

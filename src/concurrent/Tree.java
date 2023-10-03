@@ -2,16 +2,11 @@ package concurrent;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Tree<K extends Comparable<? super K>, V> {
     final int factor;
     AtomicReference<Node<K, V>> root;
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private final Lock rLock = lock.readLock();
-    private final Lock wLock = lock.writeLock();
+
     public Tree(int factor) {
         this.factor = factor;
         root = new AtomicReference<>(new Leaf<>(factor, this));

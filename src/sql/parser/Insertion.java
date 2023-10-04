@@ -43,26 +43,4 @@ public class Insertion {
             e.printStackTrace();
         }
     }
-
-
-    // todo not used
-    // Table的职责与disk部分应区分开
-    static void insertDisk(Insert insert) {
-        String schemaName = insert.getTable().getSchemaName();
-        String tableName = insert.getTable().getName();
-        File data = new File(path + schemaName + "/" + tableName);
-
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(data, true))) {
-
-            // 每行为一个记录的一条属性，记录之间以分号分隔
-            for (Expression val : insert.getValues().getExpressions()) {
-                bw.write(val.toString());
-                bw.newLine();
-            }
-            bw.write(";");
-            bw.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }

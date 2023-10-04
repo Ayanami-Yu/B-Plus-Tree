@@ -5,6 +5,7 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.Index;
+import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.select.Select;
 
 import java.io.BufferedReader;
@@ -94,16 +95,16 @@ public class Table {             // 一张表就是一棵以主键id为key的树
         List<List<String>> res = new ArrayList<>();
         Expression expr = select.getPlainSelect().getWhere();
 
-        if (expr instanceof EqualsTo eq) {            // WHERE colName = val
+        if (expr instanceof EqualsTo eq) {            // WHERE colName = colVal
             String colName = eq.getLeftExpression().toString();
-            String val = eq.getRightExpression().toString();
+            String colVal = eq.getRightExpression().toString();
 
             if (checkPK(colName)) {
 
                 // 主键限定为Integer
-                res.add(selEqualFromTree(select, Integer.parseInt(val)));
+                res.add(selEqualFromTree(select, Integer.parseInt(colVal)));
             } else {
-                res = selEqualFromSecTrees(select, colName, val);
+                res = selEqualFromSecTrees(select, colName, colVal);
             }
         } else {
             throw new SQLException("The type of WHERE clause is not currently supported");
@@ -226,24 +227,18 @@ public class Table {             // 一张表就是一棵以主键id为key的树
     }
 
 
-    public void delEqual(EqualsTo eq) {
-        try {
-            delEqualFromTree(eq);
-            delEqualFromSecTrees(eq);
+    public void deleteWhereFromTree(Delete delete) throws SQLException {
+        Expression expr = delete.getWhere();
+        if (expr instanceof EqualsTo eq) {
+            String colName = eq.getLeftExpression().toString();
+            String colVal = eq.getRightExpression().toString();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+            if (checkPK(colName)) {
+
+            }
+
+        } else {
+            throw new SQLException("The type of WHERE clause is not currently supported");
         }
     }
-
-   void delEqualFromTree(EqualsTo eq) throws SQLException {
-        String colName = eq.getLeftExpression().toString();
-        String colVal = eq.getRightExpression().toString();
-        Integer colIdx = getColIdx(colName);
-
-    }
-
-   void delEqualFromSecTrees(EqualsTo eq) { // todo
-
-   }
 }

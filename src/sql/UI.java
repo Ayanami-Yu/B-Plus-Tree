@@ -25,12 +25,14 @@ public class UI {
                 while ((c = (char) br.read()) != ';') {      // 分号标志语句结束
                     sql.append(c);
                 }
-                if (sql.toString().toLowerCase().contains("quit")) return;
+                if (sql.toString().toLowerCase().contains("quit")) break;
 
                 Parser.parse(sql.toString());                // 解析之后调用对应方法
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            Finalizer.saveDataOnDisk();
         }
     }
 }

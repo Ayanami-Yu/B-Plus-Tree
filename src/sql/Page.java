@@ -18,7 +18,7 @@ public class Page {                 // 相当于row
         initPage(insert);
     }
 
-    void initPage(Insert insert) {
+    void initPage(Insert insert) { // todo 检查主键是否重复
         int size = insert.getColumns().size();
 
         // 要求指定的column和value一一对应

@@ -15,6 +15,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static sql.parser.Parser.schemata;
@@ -60,7 +61,7 @@ public class Creation {
 
     // 根据create table语句创建一个树为空的Table对象
     public static Table generateTable(CreateTable table) {
-        Map<String, Integer> cols = new HashMap<>();
+        Map<String, Integer> cols = new LinkedHashMap<>();  // 需要保留columns的插入顺序
         String name = table.getTable().getName();
 
         int idx = 0;

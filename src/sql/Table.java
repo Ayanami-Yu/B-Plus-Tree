@@ -12,19 +12,19 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.System.out;
 
 public class Table {             // 一张表就是一棵以主键id为key的树
     static final int FACTOR = 5;
     public String name;
-    public Map<String, Integer> cols;  // (name, index)
+
+    // (name, index)
+    // key set顺序应与插入顺序相同
+    public Map<String, Integer> cols;
     public Tree<Integer, Page> tree;
-    public Map<String, Tree<String, Integer>> secTrees; // todo create index
+    public Map<String, Tree<String, Integer>> secTrees;
 
     public Table(String name, Map<String, Integer> cols) {
         this.name = name;
@@ -99,10 +99,11 @@ public class Table {             // 一张表就是一棵以主键id为key的树
             String val = eq.getRightExpression().toString();
 
             if (checkPK(colName)) {
+
                 // 主键限定为Integer
-                res.add(equalsToFromTree(select, Integer.parseInt(val)));
+                res.add(selEqualFromTree(select, Integer.parseInt(val)));
             } else {
-                res = equalsToFromSecTrees(select, colName, val);
+                res = selEqualFromSecTrees(select, colName, val);
             }
         } else {
             throw new SQLException("The type of WHERE clause is not currently supported");
@@ -124,19 +125,27 @@ public class Table {             // 一张表就是一棵以主键id为key的树
         return colName.equals("id") && cols.get(colName).equals(0);
     }
 
+
     // 返回SELECT的各个column在page的属性中对应的下标
     List<Integer> getIndices(Select select) {
-        List<String> colNames = new ArrayList<>();
-        select.getPlainSelect().getSelectItems().forEach(colName -> colNames.add(colName.toString()));
-
         List<Integer> colIndices = new ArrayList<>();
-        colNames.forEach(colName -> colIndices.add(cols.get(colName)));
 
+        var items = select.getPlainSelect().getSelectItems();
+        if (items.size() == 1 && items.get(0).toString().equals("*")) {
+
+            // 注意全选时应保持与插入顺序一致
+            cols.forEach((colName, colIdx) -> colIndices.add(colIdx));
+        } else {
+            List<String> colNames = new ArrayList<>();
+            items.forEach(colName -> colNames.add(colName.toString()));
+            colNames.forEach(colName -> colIndices.add(cols.get(colName)));
+        }
         return colIndices;
     }
 
+
     // 主键查询
-    List<String> equalsToFromTree(Select select, Integer id) throws SQLException {
+    List<String> selEqualFromTree(Select select, Integer id) throws SQLException {
         List<String> res = new ArrayList<>();
         List<Integer> colIndices = getIndices(select);
 
@@ -152,7 +161,7 @@ public class Table {             // 一张表就是一棵以主键id为key的树
 
     // 副键查询
     // colName即WHERE表达式左侧，colVal即右侧
-    List<List<String>> equalsToFromSecTrees(Select select, String colName, String colVal)
+    List<List<String>> selEqualFromSecTrees(Select select, String colName, String colVal)
             throws SQLException {
         List<List<String>> res = new ArrayList<>();
         List<Integer> colIndices = getIndices(select);
@@ -174,8 +183,9 @@ public class Table {             // 一张表就是一棵以主键id为key的树
             out.println("Secondary index " + colName + " successfully used");
         } else {
             List<Page> pages = tree.getRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+            Integer colIdx = getColIdx(colName);
             for (Page page : pages) {
-                if (page.attrs.get(getColIdx(colName)).equals(colVal)) {
+                if (page.attrs.get(colIdx).equals(colVal)) {
                     List<String> items = new ArrayList<>();
                     for (Integer idx : colIndices) {
                         items.add(page.attrs.get(idx));

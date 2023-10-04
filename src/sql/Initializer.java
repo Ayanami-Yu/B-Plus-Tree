@@ -66,8 +66,8 @@ public class Initializer {
 
     static void loadTable(String sql) {
         try {
-
             CreateTable stmt = (CreateTable) CCJSqlParserUtil.parse(sql);
+
             // 元数据在dict文件中的存储方式是完整的SQL语句
             Table table = Creation.generateTable(stmt);
 
@@ -80,7 +80,6 @@ public class Initializer {
             table.loadDataOnTree(data);
 
             out.println("Table " + stmt.getTable().getName() + " loaded");
-
         } catch (JSQLParserException e) {
             e.printStackTrace();
         }

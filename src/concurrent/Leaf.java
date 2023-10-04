@@ -119,6 +119,8 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
             getrLock().unlock();
             return new Info<>(Status.RETRY, null);
         } else {
+            if (dep != 0) parent.getrLock().unlock();   // todo bug
+
             List<V> res = new LinkedList<>();
             if (end.compareTo(keys.get(0)) >= 0) {      // 当end比最小键还小时应返回空表
                 getList(start, end, this, res, 0);
@@ -226,9 +228,9 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
     void getList(K start, K end, Leaf<K, V> preLeaf, List<V> res, int seq) {
         int from, to;
         if (seq == 0) {
-            from = getIdx(start);   // 在start为重复键时应取到对应的第一个val
+            from = getIdx(start);       // 在start为重复键时应取到对应的第一个val
         } else {
-            getrLock().lock();
+            getrLock().lock();          // 若非最先的叶子则尚未加锁
             preLeaf.getrLock().unlock();
             from = 0;
         }

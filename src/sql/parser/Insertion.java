@@ -19,6 +19,7 @@ import static sql.parser.Parser.path;
 
 public class Insertion {
 
+    // 将记录插入树中而暂不插入磁盘
     static void insertInto(String sql) {
         try {
             Insert insert = (Insert) CCJSqlParserUtil.parse(sql);
@@ -27,7 +28,8 @@ public class Insertion {
 
             Page page = new Page(insert);
             table.tree.insert(page.getID(), page);
-            insertDisk(insert);
+
+            //insertDisk(insert);
 
             // 更新副键索引的树
             if (!table.secTrees.isEmpty()) {
@@ -43,6 +45,7 @@ public class Insertion {
     }
 
 
+    // todo not used
     // Table的职责与disk部分应区分开
     static void insertDisk(Insert insert) {
         String schemaName = insert.getTable().getSchemaName();

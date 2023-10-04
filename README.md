@@ -41,7 +41,7 @@ CREATE TABLE CUSTOMERS(
 #### INDEX
 ```
 CREATE INDEX index_name
-ON table_name (column_name);
+ON schema_name.table_name (column_name);
 ```
 
 A few things to be noticed:
@@ -65,7 +65,7 @@ SELECT * FROM schma_name.table_name;
 
 ```
 SELECT column1, column2, ...
-FROM table_name
+FROM schema_name.table_name
 WHERE condition;
 ```
 
@@ -85,3 +85,10 @@ Here are a few points to be noticed:
 1. You should specify all the columns and values, and in correct sequence.
 2. The `schema_name` part is necessary, for it specifies which schema the table belongs to.
 3. If a value belongs to type "char", then you should enclose it with single quotes.
+
+### DELETE
+```
+DELETE FROM schema_name.table_name WHERE condition;
+```
+
+Note that the supported `WHERE` clauses in `DELETE` statements are in accordance with those in `SELECT`.

@@ -16,7 +16,6 @@ import java.sql.SQLException;
 
 import static java.lang.System.out;
 import static sql.parser.Parser.path;
-import static sql.parser.Parser.schemata;
 
 public class Insertion {
 
@@ -28,8 +27,15 @@ public class Insertion {
 
             Page page = new Page(insert);
             table.tree.insert(page.getID(), page);
-            insertIntoDisk(insert);
+            insertDisk(insert);
 
+            // 更新副键索引的树
+            if (!table.secTrees.isEmpty()) {
+                table.secTrees.forEach((colName, secTree) -> {
+                    Integer idx = table.cols.get(colName);              // 在Page构造方法中已经校验
+                    secTree.insert(page.attrs.get(idx), page.getID());  // 因而无需调用getColIdx检查
+                });
+            }
             out.println("Record successfully inserted");
         } catch (JSQLParserException | SQLException e) {
             e.printStackTrace();
@@ -37,8 +43,8 @@ public class Insertion {
     }
 
 
-
-    static void insertIntoDisk(Insert insert) {
+    // Table的职责与disk部分应区分开
+    static void insertDisk(Insert insert) {
         String schemaName = insert.getTable().getSchemaName();
         String tableName = insert.getTable().getName();
         File data = new File(path + schemaName + "/" + tableName);

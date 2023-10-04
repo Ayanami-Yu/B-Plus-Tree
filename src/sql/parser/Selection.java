@@ -14,7 +14,7 @@ import java.util.List;
 import static sql.parser.Parser.schemata;
 import static java.lang.System.out;
 
-public class Selection { // todo secondary key
+public class Selection {
 
     // SELECT的主入口，各类分支在Table类中实现
     static void selectFrom(String sql) {

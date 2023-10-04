@@ -29,7 +29,6 @@ public class UI {
 
                 Parser.parse(sql.toString());                // 解析之后调用对应方法
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }

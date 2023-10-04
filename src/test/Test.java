@@ -13,6 +13,7 @@ import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.Index;
+import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.drop.Drop;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -26,7 +27,7 @@ import static java.lang.System.out;
 
 public class Test {
     public static void main(String[] args) throws JSQLParserException {
-
+        sqlDelete();
     }
 
     static void sqlCreate() throws JSQLParserException {
@@ -129,5 +130,20 @@ public class Test {
         out.println(createIndex.getIndex().getNameParts()); // [index_name]
         out.println(createIndex.getIndex().getColumnsNames().get(0)); // column_name1
         out.println(createIndex.getTable().getSchemaName()); // schema_name
+    }
+
+    static void sqlDelete() throws JSQLParserException {
+        String s = """
+                DELETE FROM schema_name.table_name;
+                """;
+        Delete delete = (Delete) CCJSqlParserUtil.parse(s);
+        out.println(delete.getTable().getSchemaName()); // schema_name
+        out.println(delete.getTable().getName()); // table_name
+        out.println(delete.getWhere()); // id = 2
+        out.println(delete.getJoins()); // null
+        Expression expr = delete.getWhere();
+        if (expr instanceof EqualsTo eq) {
+            out.println(eq.getLeftExpression()); // id
+        }
     }
 }

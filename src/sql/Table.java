@@ -22,15 +22,15 @@ import static java.lang.System.out;
 public class Table {             // 一张表就是一棵以主键id为key的树
     static final int FACTOR = 5;
     public String name;
-    Map<String, Integer> cols;  // (name, index)
+    public Map<String, Integer> cols;  // (name, index)
     public Tree<Integer, Page> tree;
-    Map<String, Tree<String, Integer>> secondaryTrees; // todo create index
+    public Map<String, Tree<String, Integer>> secTrees; // todo create index
 
     public Table(String name, Map<String, Integer> cols) {
         this.name = name;
         this.cols = cols;
         tree = new Tree<>(FACTOR);
-        secondaryTrees = new HashMap<>();
+        secTrees = new HashMap<>();
     }
 
     public void loadDataOnTree(File data) {
@@ -98,22 +98,26 @@ public class Table {             // 一张表就是一棵以主键id为key的树
             String colName = eq.getLeftExpression().toString();
             String val = eq.getRightExpression().toString();
 
-            // colName在Page的attrs中对应的下标
-            Integer idx = cols.get(colName);
-            if (idx == null) {
-                throw new SQLException("There is no such column in the table");
-            }
-
             if (checkPK(colName)) {
                 // 主键限定为Integer
                 res.add(equalsToFromTree(select, Integer.parseInt(val)));
             } else {
-                res = equalsToFromSecondaryTrees(select, colName, idx, val);
+                res = equalsToFromSecTrees(select, colName, val);
             }
         } else {
             throw new SQLException("The type of WHERE clause is not currently supported");
         }
         return res;
+    }
+
+
+    // 返回colName在Page的attrs中对应的下标
+    public Integer getColIdx(String colName) throws SQLException {
+        Integer idx = cols.get(colName);
+        if (idx == null) {
+            throw new SQLException("There is no such column in the table");
+        }
+        return idx;
     }
 
     boolean checkPK(String colName) {     // 便于增加PRIMARY KEY Constraint
@@ -148,13 +152,13 @@ public class Table {             // 一张表就是一棵以主键id为key的树
 
     // 副键查询
     // colName即WHERE表达式左侧，colVal即右侧
-    List<List<String>> equalsToFromSecondaryTrees(Select select, String colName,
-                                                  Integer colIdx, String colVal) throws SQLException {
+    List<List<String>> equalsToFromSecTrees(Select select, String colName, String colVal)
+            throws SQLException {
         List<List<String>> res = new ArrayList<>();
         List<Integer> colIndices = getIndices(select);
 
         // 副键的名称应与其被指定的column相同
-        Tree<String, Integer> secTree = secondaryTrees.get(colName);
+        Tree<String, Integer> secTree = secTrees.get(colName);
         if (secTree != null) {
             List<Integer> ids = secTree.getRange(colVal, colVal);     // 可能有重复键
             for (Integer id : ids) {
@@ -167,11 +171,11 @@ public class Table {             // 一张表就是一棵以主键id为key的树
             }
 
             // 测试CREATE INDEX是否起作用
-            out.println("The secondary index " + colName + " has been successfully used");
+            out.println("Secondary index " + colName + " successfully used");
         } else {
             List<Page> pages = tree.getRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
             for (Page page : pages) {
-                if (page.attrs.get(colIdx).equals(colVal)) {
+                if (page.attrs.get(getColIdx(colName)).equals(colVal)) {
                     List<String> items = new ArrayList<>();
                     for (Integer idx : colIndices) {
                         items.add(page.attrs.get(idx));
@@ -187,7 +191,7 @@ public class Table {             // 一张表就是一棵以主键id为key的树
     }
 
 
-    public void createSecondaryTree(CreateIndex createIndex) throws SQLException {
+    public void createSecTree(CreateIndex createIndex) throws SQLException {
         Index index = createIndex.getIndex();
         String idxName = index.getName();
         String colName = index.getColumnsNames().get(0);
@@ -198,19 +202,38 @@ public class Table {             // 一张表就是一棵以主键id为key的树
         if (!idxName.equals(colName)) {
             throw new SQLException("The index name should match the column name");
         }
-        if (secondaryTrees.get(index.getName()) != null) {
+        if (secTrees.get(index.getName()) != null) {
             throw new SQLException("The index has already been created");
         }
 
-        Integer colIdx = cols.get(colName);
-        if (colIdx == null) {
-            throw new SQLException("There is no such column in the table");
-        }
+        Integer colIdx = getColIdx(colName);
 
         Tree<String, Integer> secTree = new Tree<>(FACTOR);
         List<Page> pages = tree.getRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
         pages.forEach(page -> secTree.insert(page.attrs.get(colIdx), page.getID()));
 
-        secondaryTrees.put(idxName, secTree);
+        secTrees.put(idxName, secTree);
     }
+
+
+    public void delEqual(EqualsTo eq) {
+        try {
+            delEqualFromTree(eq);
+            delEqualFromSecTrees(eq);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+   void delEqualFromTree(EqualsTo eq) throws SQLException {
+        String colName = eq.getLeftExpression().toString();
+        String colVal = eq.getRightExpression().toString();
+        Integer colIdx = getColIdx(colName);
+
+    }
+
+   void delEqualFromSecTrees(EqualsTo eq) { // todo
+
+   }
 }

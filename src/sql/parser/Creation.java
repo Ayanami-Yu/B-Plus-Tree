@@ -15,7 +15,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static sql.parser.Parser.schemata;
@@ -104,7 +103,7 @@ public class Creation {
             String tableName = createIndex.getTable().getName();
 
             Table table = schemata.get(schemaName).tables.get(tableName);
-            table.createSecondaryTree(createIndex);
+            table.createSecTree(createIndex);
 
             out.println("Secondary index " + createIndex.getIndex().getName() + " created");
         } catch (JSQLParserException | SQLException e) {

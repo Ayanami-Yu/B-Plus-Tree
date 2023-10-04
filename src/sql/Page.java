@@ -6,14 +6,14 @@ import java.util.*;
 
 import static sql.parser.Parser.schemata;
 
-public class Page { // 相当于row
-    List<String> attrs; // values without column names
+public class Page {                 // 相当于row
+    public List<String> attrs;      // 仅含值而不含column名称
 
     public Page() {
         attrs = new ArrayList<>();
     }
 
-    public Page(Insert insert) {
+    public Page(Insert insert) {    // 创建Page对象时会校验是否合法
         attrs = new ArrayList<>();
         initPage(insert);
     }

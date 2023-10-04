@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static sql.parser.Creation.*;
+import static sql.parser.Deletion.deleteFrom;
 import static sql.parser.Insertion.insertInto;
 import static sql.parser.Selection.selectFrom;
 
@@ -32,6 +33,7 @@ public class Parser {
                 }
                 case "INSERT" -> insertInto(sql);
                 case "SELECT" -> selectFrom(sql);
+                case "DELETE" -> deleteFrom(sql);
 
                 default -> UI.printError();
             }

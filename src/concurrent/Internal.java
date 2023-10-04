@@ -109,19 +109,21 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
     }
 
     @Override
-    Status delete(K key, int loc, int dep) {
+    Info<V> delete(K key, int loc, int dep) {
         getwLock().lock();
         try {
-            Status st;
+            //Status st;
+            Info<V> info;
             if (dep == 0 && this != tree.root.get()) {
                 getwLock().unlock();
-                st = Status.RETRY;
+                //st = Status.RETRY;
+                info = new Info<>(Status.RETRY);
             } else {
                 if (safeForDelete()) unlockAncestors();
 
                 int idx = getIdx(key);
-                st = children.get(idx).delete(key, idx, dep + 1);
-                if (dep == 0 && keys.size() == 0) { // 空的根结点
+                info = children.get(idx).delete(key, idx, dep + 1);
+                if (dep == 0 && keys.isEmpty()) {                        // 空的根结点
                     children.get(0).getwLock().lock();
                     try {
                         children.get(0).parent = null;
@@ -129,9 +131,12 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
                     } finally {
                         children.get(0).getwLock().unlock();
                     }
-                } else if (dep != 0 && isUnderflow()) st = redistribute(loc);
+                } else if (dep != 0 && isUnderflow()) {
+                    //st = redistribute(loc);
+                    info = new Info<>(redistribute(loc));
+                }
             }
-            return st;
+            return info;
         } finally {
             if (getLock().isWriteLockedByCurrentThread())
                 getwLock().unlock();
@@ -139,11 +144,12 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
     }
 
     @Override
-    Status optimisticDelete(K key, int dep) {
+    Info<V> optimisticDelete(K key, int dep) {
         getrLock().lock();
         if (dep == 0 && this != tree.root.get()) {
             getrLock().unlock();
-            return Status.RETRY;
+            //return Status.RETRY;
+            return new Info<>(Status.RETRY);
         }
         if (dep != 0) parent.getrLock().unlock();
 

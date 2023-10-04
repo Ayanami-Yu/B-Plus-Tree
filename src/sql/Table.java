@@ -1,5 +1,7 @@
 package sql;
 
+import concurrent.Info;
+import concurrent.Status;
 import concurrent.Tree;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
@@ -233,10 +235,25 @@ public class Table {             // 一张表就是一棵以主键id为key的树
             String colName = eq.getLeftExpression().toString();
             String colVal = eq.getRightExpression().toString();
 
-            if (checkPK(colName)) {
+            if (checkPK(colName)) {    // 若删除的是主键
+                Info<Page> info = tree.delete(getColIdx(colName));
+                if (info.st == Status.NOT_EXIST) {
+                    throw new SQLException("No records matched");
+                }
+                Page page = info.val;
+                Map<String, String> pageCols = new HashMap<>();
+                cols.forEach((key, idx) -> {
+
+                    // 为page的每个非主键属性生成 (colName, colVal) 键值对
+                    pageCols.put(key, page.attrs.get(idx));
+                });
+                pageCols.forEach((key, val) -> {
+                    if (secTrees.containsKey(key)) {
+                        
+                    }
+                });
 
             }
-
         } else {
             throw new SQLException("The type of WHERE clause is not currently supported");
         }

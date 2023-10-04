@@ -41,18 +41,19 @@ public class Tree<K extends Comparable<? super K>, V> {
         return info.vals;
     }
 
-    public Status delete(K key) {
-        Status st;
+    public Info<V> delete(K key) {
+        //Status st;
+        Info<V> info;
         do {
-            st = root.get().optimisticDelete(key, 0);
-        } while (st == Status.RETRY);
+            info = root.get().optimisticDelete(key, 0);
+        } while (info.st == Status.RETRY);
 
-        if (st == Status.FAILURE) {
+        if (info.st == Status.FAILURE) {
             do {
-                st = root.get().delete(key, 0, 0);
-            } while (st == Status.RETRY);
+                info = root.get().delete(key, 0, 0);
+            } while (info.st == Status.RETRY);
         }
-        return st;
+        return info;
     }
 
     @Override

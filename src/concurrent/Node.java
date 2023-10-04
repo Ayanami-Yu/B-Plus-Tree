@@ -73,9 +73,9 @@ public abstract class Node<K extends Comparable<? super K>, V> {
 
     abstract Info<V> getRange(K start, K end, int dep);
 
-    abstract Status delete(K key, int loc, int dep);
+    abstract Info<V> delete(K key, int loc, int dep);
 
-    abstract Status optimisticDelete(K key, int dep);
+    abstract Info<V> optimisticDelete(K key, int dep);
 
     Status redistribute(int loc) {
         getwLock().lock();

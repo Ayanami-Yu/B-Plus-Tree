@@ -130,53 +130,76 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
     }
 
     @Override
-    Status delete(K key, int loc, int dep) {
+    Info<V> delete(K key, int loc, int dep) {
         getwLock().lock();
-        Status st;
+        //Status st;
+        Info<V> info;
         try {
             if (dep == 0 && this != tree.root.get()) {
-                st = Status.RETRY;
+                //st = Status.RETRY;
+                info = new Info<>(Status.RETRY);
             } else if (dep == 0 && keys.isEmpty()) {
-                st = Status.EMPTY;
+                //st = Status.EMPTY;
+                info = new Info<>(Status.EMPTY);
             } else {
                 if (safeForDelete()) unlockAncestors();
 
                 int idx = Collections.binarySearch(keys, key);
-                if (idx < 0) st = Status.NOT_EXIST;
+                if (idx < 0) {
+                    //st = Status.NOT_EXIST;
+                    info = new Info<>(Status.NOT_EXIST);
+                }
                 else {
+                    V val = vals.get(idx);
                     keys.remove(idx);
                     vals.remove(idx);
-                    if (dep != 0 && isUnderflow()) st = redistribute(loc);
-                    else st = Status.SUCCESS;
+                    if (dep != 0 && isUnderflow()) {
+                        //st = redistribute(loc);
+                        info = new Info<>(redistribute(loc), val);
+                    }
+                    else {
+                        //st = Status.SUCCESS;
+                        info = new Info<>(Status.SUCCESS, val);
+                    }
                 }
             }
-            return st;
+            return info;
         } finally {
             getwLock().unlock();
         }
     }
 
     @Override
-    Status optimisticDelete(K key, int dep) {
+    Info<V> optimisticDelete(K key, int dep) {
         getwLock().lock();
-        Status st;
+        //Status st;
+        Info<V> info;
         try {
             if (dep == 0 && this != tree.root.get()) {
-                st = Status.RETRY;
+                //st = Status.RETRY;
+                info = new Info<>(Status.RETRY);
             } else {
                 if (dep != 0) parent.getrLock().unlock();
 
                 if (safeForDelete()) {
                     int idx = Collections.binarySearch(keys, key);
-                    if (idx < 0) st = Status.NOT_EXIST;
+                    if (idx < 0) {
+                        //st = Status.NOT_EXIST;
+                        info = new Info<>(Status.NOT_EXIST);
+                    }
                     else {
+                        V val = vals.get(idx);
                         keys.remove(idx);
                         vals.remove(idx);
-                        st = Status.SUCCESS;
+                        //st = Status.SUCCESS;
+                        info = new Info<>(Status.SUCCESS, val);
                     }
-                } else st = Status.FAILURE;
+                } else {
+                    //st = Status.FAILURE;
+                    info = new Info<>(Status.FAILURE);
+                }
             }
-            return st;
+            return info;
         } finally {
             getwLock().unlock();
         }

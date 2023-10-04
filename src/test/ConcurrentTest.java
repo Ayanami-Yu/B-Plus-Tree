@@ -40,7 +40,7 @@ public class ConcurrentTest {
     void test1() {
         Tree<Integer, Integer> t = new Tree<>(5);
         for (int i = 0; i < 20; i++) t.insert(i, i);
-        for (int i = 1; i < 19; i++) t.delete(i);
+        for (int i = 0; i < 20; i++) t.delete(i);
         System.out.println(t);
     }
 
@@ -107,19 +107,19 @@ public class ConcurrentTest {
 
     void testDelete1(Tree<Integer, Integer> t) {
         for (int i = -200; i < -100; i++) {
-            Assertions.assertEquals(Status.SUCCESS, t.delete(i));
+            Assertions.assertEquals(Status.SUCCESS, t.delete(i).st);
         }
     }
 
     void testDelete2(Tree<Integer, Integer> t) {
         for (int i = -100; i < 0; i++) {
-            Assertions.assertEquals(Status.SUCCESS, t.delete(i));
+            Assertions.assertEquals(Status.SUCCESS, t.delete(i).st);
         }
     }
 
     void testDelete3(Tree<Integer, Integer> t) {
         for (int i = 0; i < 201; i++) {
-            Assertions.assertEquals(Status.SUCCESS, t.delete(i));
+            Assertions.assertEquals(Status.SUCCESS, t.delete(i).st);
         }
     }
 }

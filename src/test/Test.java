@@ -21,13 +21,21 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.util.TablesNamesFinder;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import static java.lang.System.out;
 
 public class Test {
     public static void main(String[] args) throws JSQLParserException {
-        sqlDelete();
+        Map<Integer, Integer> map = new HashMap<>();
+        map.put(1, 1);
+
+        map.forEach((key, val) -> {
+            out.println(key);
+        });
+
     }
 
     static void sqlCreate() throws JSQLParserException {

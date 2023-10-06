@@ -58,6 +58,7 @@ FROM schema_name.table_name;
 
 1. You can only specify one table in standard select-from statement. Otherwise, only the first table will be recognized.
 2. Currently, you should specify the schema containing this table, because I haven't implemented USE SCHEMA statement.
+3. The output sequence of selected columns will be identical to the input, meaning you don't have to specify the columns in the same sequence as that in your `CREATE TABLE` statement.
 
 ```
 SELECT * FROM schma_name.table_name;
@@ -92,3 +93,9 @@ DELETE FROM schema_name.table_name WHERE condition;
 ```
 
 Note that the supported `WHERE` clauses in `DELETE` statements are in accordance with those in `SELECT`.
+
+```
+DELETE FROM schema_name.table_name;
+```
+
+This will delete all records in the specified table, but its structure like columns and secondary indices (though without any record) will remain intact. 

@@ -5,6 +5,8 @@ import concurrent.Tree;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -52,13 +54,10 @@ public class ConcurrentTest {
             t.insert(i, i);
             t.insert(i, i);
         }
-        System.out.println(t.getRange(4, 4));
-        System.out.println(t.getRange(3, 3));
-        System.out.println(t.getRange(2, 2));
-        System.out.println(t.getRange(1, 1));
-        System.out.println(t.getRange(0, 0));
-        System.out.println(t.getRange(-1, -1));
-        System.out.println(t.getRange(1, 3));
+        Assertions.assertEquals(new ArrayList<>(), t.getRange(4, 4));
+        Assertions.assertEquals(new ArrayList<>(Arrays.asList(3, 3, 3)), t.getRange(3, 3));
+        Assertions.assertEquals(new ArrayList<>(), t.getRange(-1, -1));
+        Assertions.assertEquals(new ArrayList<>(Arrays.asList(1, 1, 1, 2, 2, 2, 3, 3, 3)), t.getRange(1, 3));
     }
 
     void testInsert1(Tree<Integer, Integer> t) {

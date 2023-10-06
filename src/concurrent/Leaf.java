@@ -1,7 +1,6 @@
 package concurrent;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,7 +23,7 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
                 if (dep != 0) parent.getrLock().unlock();
 
                 if (safeForInsert()) {
-                    int idx = getIdx(key);
+                    int idx = getIdx(key, false);
                     keys.add(idx, key);
                     vals.add(idx, val);
                     st = Status.SUCCESS;
@@ -46,7 +45,7 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
             } else {
                 if (safeForInsert()) unlockAncestors();
 
-                int idx = getIdx(key);
+                int idx = getIdx(key, false);
                 keys.add(idx, key);
                 vals.add(idx, val);
                 if (isOverflow()) st = split(loc);
@@ -102,7 +101,7 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
             } else {
                 if (dep != 0) parent.getrLock().unlock();
 
-                int idx = Collections.binarySearch(keys, key);
+                int idx = getIdx(key, true);
                 if (idx >= 0) {
                     return new Info<>(Status.SUCCESS, vals.get(idx));
                 } else return new Info<>(Status.NOT_EXIST, null);
@@ -119,7 +118,7 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
             getrLock().unlock();
             return new Info<>(Status.RETRY, null);
         } else {
-            if (dep != 0) parent.getrLock().unlock();   // todo bug
+            if (dep != 0) parent.getrLock().unlock();
 
             List<V> res = new LinkedList<>();
             if (end.compareTo(keys.get(0)) >= 0) {      // 当end比最小键还小时应返回空表
@@ -130,36 +129,44 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
     }
 
     @Override
-    Info<V> delete(K key, int loc, int dep) {
+    Info<V> delete(K key, V val, int loc, int dep) {
         getwLock().lock();
-        //Status st;
         Info<V> info;
         try {
             if (dep == 0 && this != tree.root.get()) {
-                //st = Status.RETRY;
                 info = new Info<>(Status.RETRY);
             } else if (dep == 0 && keys.isEmpty()) {
-                //st = Status.EMPTY;
                 info = new Info<>(Status.EMPTY);
             } else {
                 if (safeForDelete()) unlockAncestors();
 
-                int idx = Collections.binarySearch(keys, key);
+                int idx = getIdx(key, true);
                 if (idx < 0) {
-                    //st = Status.NOT_EXIST;
                     info = new Info<>(Status.NOT_EXIST);
-                }
-                else {
-                    V val = vals.get(idx);
-                    keys.remove(idx);
-                    vals.remove(idx);
-                    if (dep != 0 && isUnderflow()) {
-                        //st = redistribute(loc);
-                        info = new Info<>(redistribute(loc), val);
-                    }
-                    else {
-                        //st = Status.SUCCESS;
-                        info = new Info<>(Status.SUCCESS, val);
+                } else {
+                    V res = vals.get(idx);
+                    if (val == null) {
+                        keys.remove(idx);
+                        vals.remove(idx);
+                        if (dep != 0 && isUnderflow()) {
+                            info = new Info<>(redistribute(loc), res);
+                        } else
+                            info = new Info<>(Status.SUCCESS, res);
+                    } else {
+                        while (!res.equals(val) && key.equals(keys.get(idx))) {
+                            if (++idx < vals.size())
+                                res = vals.get(idx);
+                            else break;
+                        }
+                        if (res.equals(val)) {
+                            keys.remove(idx);
+                            vals.remove(idx);
+                            if (dep != 0 && isUnderflow()) {
+                                info = new Info<>(redistribute(loc), res);
+                            } else
+                                info = new Info<>(Status.SUCCESS, res);
+                        } else
+                            info = new Info<>(Status.NOT_EXIST);
                     }
                 }
             }
@@ -170,32 +177,42 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
     }
 
     @Override
-    Info<V> optimisticDelete(K key, int dep) {
+    Info<V> optimisticDelete(K key, V val, int dep) {
         getwLock().lock();
-        //Status st;
         Info<V> info;
         try {
             if (dep == 0 && this != tree.root.get()) {
-                //st = Status.RETRY;
                 info = new Info<>(Status.RETRY);
             } else {
                 if (dep != 0) parent.getrLock().unlock();
 
                 if (safeForDelete()) {
-                    int idx = Collections.binarySearch(keys, key);
+                    // 有重复键时应获取第一个键
+                    int idx = getIdx(key, true);
                     if (idx < 0) {
-                        //st = Status.NOT_EXIST;
                         info = new Info<>(Status.NOT_EXIST);
-                    }
-                    else {
-                        V val = vals.get(idx);
-                        keys.remove(idx);
-                        vals.remove(idx);
-                        //st = Status.SUCCESS;
-                        info = new Info<>(Status.SUCCESS, val);
+                    } else {
+                        V res = vals.get(idx);
+                        if (val == null) {
+                            keys.remove(idx);
+                            vals.remove(idx);
+                            info = new Info<>(Status.SUCCESS, res);
+                        } else {
+                            // 尝试获取与目标值相同的键值对
+                            while (!res.equals(val) && key.equals(keys.get(idx))) {
+                                if (++idx < vals.size())
+                                    res = vals.get(idx);
+                                else break;
+                            }
+                            if (res.equals(val)) {
+                                keys.remove(idx);
+                                vals.remove(idx);
+                                info = new Info<>(Status.SUCCESS, res);
+                            } else
+                                info = new Info<>(Status.NOT_EXIST);
+                        }
                     }
                 } else {
-                    //st = Status.FAILURE;
                     info = new Info<>(Status.FAILURE);
                 }
             }
@@ -251,7 +268,7 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
     void getList(K start, K end, Leaf<K, V> preLeaf, List<V> res, int seq) {
         int from, to;
         if (seq == 0) {
-            from = getIdx(start);       // 在start为重复键时应取到对应的第一个val
+            from = getIdx(start, false);       // 在start为重复键时应取到对应的第一个val
         } else {
             getrLock().lock();          // 若非最先的叶子则尚未加锁
             preLeaf.getrLock().unlock();

@@ -3,6 +3,8 @@ package concurrent;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+
+// 所有CRUD前是否空树的判断都应在外部调用isEmpty完成
 public class Tree<K extends Comparable<? super K>, V> {
     final int factor;
     AtomicReference<Node<K, V>> root;
@@ -10,6 +12,10 @@ public class Tree<K extends Comparable<? super K>, V> {
     public Tree(int factor) {
         this.factor = factor;
         root = new AtomicReference<>(new Leaf<>(factor, this));
+    }
+
+    public boolean isEmpty() {
+        return root.get().keys.isEmpty();
     }
 
     public void insert(K key, V val) {
@@ -41,16 +47,31 @@ public class Tree<K extends Comparable<? super K>, V> {
         return info.vals;
     }
 
+
+    // 此时若有重复键则获取第一个值
     public Info<V> delete(K key) {
-        //Status st;
         Info<V> info;
         do {
-            info = root.get().optimisticDelete(key, 0);
+            info = root.get().optimisticDelete(key, null, 0);
         } while (info.st == Status.RETRY);
 
         if (info.st == Status.FAILURE) {
             do {
-                info = root.get().delete(key, 0, 0);
+                info = root.get().delete(key, null, 0, 0);
+            } while (info.st == Status.RETRY);
+        }
+        return info;
+    }
+
+    public Info<V> delete(K key, V val) {
+        Info<V> info;
+        do {
+            info = root.get().optimisticDelete(key, val, 0);
+        } while (info.st == Status.RETRY);
+
+        if (info.st == Status.FAILURE) {
+            do {
+                info = root.get().delete(key, val, 0, 0);
             } while (info.st == Status.RETRY);
         }
         return info;

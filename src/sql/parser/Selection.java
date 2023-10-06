@@ -5,13 +5,10 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.Select;
 import sql.Schema;
 import sql.Table;
-import sql.UI;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
-import static sql.parser.Parser.schemata;
 import static java.lang.System.out;
 
 public class Selection {
@@ -28,6 +25,10 @@ public class Selection {
 
             Schema schema = Schema.getSchema(schemaName);
             Table table = Table.getTable(schema, tableName);
+            if (table.tree.isEmpty()) {
+                throw new SQLException("Table " + tableName + " is empty");
+            }
+
             List<List<String>> res;
 
             if (select.getPlainSelect().getWhere() != null) { // 有WHERE限定

@@ -26,9 +26,7 @@ public class Deletion {
             if (delete.getWhere() != null) {
                 table.deleteWhereFromTree(delete);
             } else {
-
-                // todo DELETE without WHERE
-                throw new SQLException("Deletion without WHERE clause is not currently supported");
+                table.deleteAllFromTree();
             }
         } catch (JSQLParserException | SQLException e) {
             e.printStackTrace();

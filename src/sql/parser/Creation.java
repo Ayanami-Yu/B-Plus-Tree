@@ -14,13 +14,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static sql.parser.Parser.schemata;
-import static sql.parser.Parser.path;
 import static java.lang.System.out;
+import static sql.parser.Parser.path;
+import static sql.parser.Parser.schemata;
 
 public class Creation {
 

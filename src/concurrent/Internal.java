@@ -19,7 +19,7 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
         }
         if (dep != 0) parent.getrLock().unlock();
 
-        int idx = getIdx(key);
+        int idx = getIdx(key, false);
         return children.get(idx).optimisticInsert(key, val, dep + 1);
     }
 
@@ -33,7 +33,7 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
             } else {
                 if (safeForInsert()) unlockAncestors();
 
-                int idx = getIdx(key);
+                int idx = getIdx(key, false);
                 st = children.get(idx).insert(key, val, idx, dep + 1);
                 if (isOverflow()) st = split(loc);
             }
@@ -89,7 +89,7 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
         } else {
             if (dep != 0) parent.getrLock().unlock();
 
-            int idx = getIdx(key);
+            int idx = getIdx(key, false);
             return children.get(idx).get(key, dep + 1);
         }
     }
@@ -103,27 +103,26 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
         } else {
             if (dep != 0) parent.getrLock().unlock();
 
-            int idx = getIdx(start);
+            int idx = getIdx(start, false);
             return children.get(idx).getRange(start, end, dep + 1);
         }
     }
 
     @Override
-    Info<V> delete(K key, int loc, int dep) {
+    Info<V> delete(K key, V val, int loc, int dep) {
         getwLock().lock();
         try {
-            //Status st;
             Info<V> info;
             if (dep == 0 && this != tree.root.get()) {
                 getwLock().unlock();
-                //st = Status.RETRY;
                 info = new Info<>(Status.RETRY);
             } else {
                 if (safeForDelete()) unlockAncestors();
 
-                int idx = getIdx(key);
-                info = children.get(idx).delete(key, idx, dep + 1);
-                if (dep == 0 && keys.isEmpty()) {                        // 空的根结点
+                int idx = getIdx(key, false);
+                info = children.get(idx).delete(key, val, idx, dep + 1);
+
+                if (dep == 0 && keys.isEmpty()) {    // 空的根结点
                     children.get(0).getwLock().lock();
                     try {
                         children.get(0).parent = null;
@@ -132,7 +131,6 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
                         children.get(0).getwLock().unlock();
                     }
                 } else if (dep != 0 && isUnderflow()) {
-                    //st = redistribute(loc);
                     info = new Info<>(redistribute(loc));
                 }
             }
@@ -144,17 +142,16 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
     }
 
     @Override
-    Info<V> optimisticDelete(K key, int dep) {
+    Info<V> optimisticDelete(K key, V val, int dep) {
         getrLock().lock();
         if (dep == 0 && this != tree.root.get()) {
             getrLock().unlock();
-            //return Status.RETRY;
             return new Info<>(Status.RETRY);
         }
         if (dep != 0) parent.getrLock().unlock();
 
-        int idx = getIdx(key);
-        return children.get(idx).optimisticDelete(key, dep + 1);
+        int idx = getIdx(key, false);
+        return children.get(idx).optimisticDelete(key, val, dep + 1);
     }
 
     @Override

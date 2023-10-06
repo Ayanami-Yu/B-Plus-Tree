@@ -2,7 +2,9 @@ package sql;
 
 import net.sf.jsqlparser.statement.insert.Insert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import static sql.parser.Parser.schemata;
 
@@ -18,7 +20,7 @@ public class Page {                 // 相当于row
         initPage(insert);
     }
 
-    void initPage(Insert insert) { // todo 检查主键是否重复
+    void initPage(Insert insert) {
         int size = insert.getColumns().size();
 
         // 要求指定的column和value一一对应
@@ -53,7 +55,7 @@ public class Page {                 // 相当于row
         } else {
             for (int i = 0; i < table.cols.size(); i++) {
                 String col = insert.getColumns().get(i).toString();
-                if (!table.cols.containsKey(col)) { // Table的元数据中是否含有该column
+                if (!table.cols.containsKey(col)) {    // Table的元数据中是否含有该column
                     verified = false;
                     break;
                 }
@@ -64,6 +66,13 @@ public class Page {                 // 相当于row
     }
 
     public Integer getID() {
-        return Integer.parseInt(attrs.get(0));
+        return Integer.parseInt(attrs.get(0));    // 规定第一个插入的column应为主键
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        attrs.forEach(attr -> sb.append(attr).append(" "));
+        return sb.toString();
     }
 }

@@ -1,21 +1,15 @@
 package sql.parser;
 
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.insert.Insert;
 import sql.Page;
 import sql.Schema;
 import sql.Table;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.SQLException;
 
 import static java.lang.System.out;
-import static sql.parser.Parser.path;
 
 public class Insertion {
 
@@ -27,9 +21,10 @@ public class Insertion {
             Table table = Table.getTable(schema, insert.getTable().getName());
 
             Page page = new Page(insert);
+            if (table.isDuplicatePK(page.getID())) {
+                throw new SQLException("The primary key already exists");
+            }
             table.tree.insert(page.getID(), page);
-
-            //insertDisk(insert);
 
             // 更新副键索引的树
             if (!table.secTrees.isEmpty()) {

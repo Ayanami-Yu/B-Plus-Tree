@@ -15,11 +15,14 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.System.out;
 
-public class Table {             // 一张表就是一棵以主键id为key的树
+public class Table {    // 一张表就是一棵以主键id为key的树
     static final int FACTOR = 5;
     public String name;
 
@@ -62,6 +65,10 @@ public class Table {             // 一张表就是一棵以主键id为key的树
         return table;
     }
 
+    public boolean isDuplicatePK(Integer id) {
+        if (tree.isEmpty()) return false;
+        return tree.get(id) != null;
+    }
 
     public List<List<String>> selectFromTree(Select select) {
         List<List<String>> res = new ArrayList<>();
@@ -97,7 +104,7 @@ public class Table {             // 一张表就是一棵以主键id为key的树
         List<List<String>> res = new ArrayList<>();
         Expression expr = select.getPlainSelect().getWhere();
 
-        if (expr instanceof EqualsTo eq) {            // WHERE colName = colVal
+        if (expr instanceof EqualsTo eq) {    // WHERE colName = colVal
             String colName = eq.getLeftExpression().toString();
             String colVal = eq.getRightExpression().toString();
 
@@ -220,39 +227,97 @@ public class Table {             // 一张表就是一棵以主键id为key的树
         }
 
         Integer colIdx = getColIdx(colName);
-
         Tree<String, Integer> secTree = new Tree<>(FACTOR);
-        List<Page> pages = tree.getRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
-        pages.forEach(page -> secTree.insert(page.attrs.get(colIdx), page.getID()));
+        if (!tree.isEmpty()) {
+            List<Page> pages = tree.getRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+            pages.forEach(page -> secTree.insert(page.attrs.get(colIdx), page.getID()));
+        }
 
+        // 若树为空secTree也为空
         secTrees.put(idxName, secTree);
     }
 
 
+    // 利用垃圾回收
+    public void deleteAllFromTree() {
+        tree = new Tree<>(FACTOR);
+        secTrees.forEach((key, secTree) -> new Tree<>(FACTOR));
+        out.println("All records in table " + name + " deleted");
+    }
+
     public void deleteWhereFromTree(Delete delete) throws SQLException {
         Expression expr = delete.getWhere();
         if (expr instanceof EqualsTo eq) {
+            if (tree.isEmpty()) {
+                throw new SQLException("Table " + name + " is empty");
+            }
             String colName = eq.getLeftExpression().toString();
             String colVal = eq.getRightExpression().toString();
 
             if (checkPK(colName)) {    // 若删除的是主键
-                Info<Page> info = tree.delete(getColIdx(colName));
+                Info<Page> info = tree.delete(Integer.parseInt(colVal));    // colVal为id的值
                 if (info.st == Status.NOT_EXIST) {
                     throw new SQLException("No records matched");
                 }
-                Page page = info.val;
-                Map<String, String> pageCols = new HashMap<>();
-                cols.forEach((key, idx) -> {
 
-                    // 为page的每个非主键属性生成 (colName, colVal) 键值对
-                    pageCols.put(key, page.attrs.get(idx));
-                });
+                Page delPage = info.val;
+                Map<String, String> pageCols = new HashMap<>();
+
+                // 为page的每个非主键属性生成 (colName, colVal) 键值对
+                cols.forEach((key, idx) -> pageCols.put(key, delPage.attrs.get(idx)));
+
+                // 由page的属性更新所有副键树
                 pageCols.forEach((key, val) -> {
                     if (secTrees.containsKey(key)) {
-                        
+                        secTrees.get(key).delete(val, delPage.getID());    // todo Unit Test NOT_EXIST
                     }
                 });
+                out.println("Page " + delPage + "deleted");
+            } else {
+                if (secTrees.containsKey(colName)) {    // 若删除的是其他列则最高效的方式是先回表
+                    List<Integer> ids = new ArrayList<>();
+                    Info<Integer> info;
+                    while (true) {
+                        info = secTrees.get(colName).delete(colVal);
+                        if (info.st == Status.SUCCESS) {
+                            ids.add(info.val);    // 加入符合colVal的所有主键
+                        } else break;
+                    }
+                    if (ids.isEmpty()) {
+                        throw new SQLException("No records matched");
+                    }
 
+                    // 将删除的条目都加入到pages中
+                    List<Page> delPages = new ArrayList<>();
+                    ids.forEach(id -> delPages.add(tree.delete(id).val));
+
+                    // 删除每个副键树中对应的条目
+                    secTrees.forEach((key, secTree) -> {
+                        Integer idx = cols.get(key);
+                        delPages.forEach(page -> secTree.delete(page.attrs.get(idx), page.getID()));
+                    });
+                    delPages.forEach(delPage -> out.println("Page " + delPage + "deleted"));
+
+                } else {    // 若没有为colName对应的列建立索引
+                    List<Page> delPages = new ArrayList<>();
+                    List<Page> pages = tree.getRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
+                    Integer colIdx = getColIdx(colName);
+
+                    pages.forEach(page -> {
+                        if (page.attrs.get(colIdx).equals(colVal)) {
+                            delPages.add(tree.delete(page.getID()).val);    // id不会重复
+                        }
+                    });
+                    if (delPages.isEmpty()) {
+                        throw new SQLException("No records matched");
+                    }
+
+                    secTrees.forEach((key, secTree) -> {
+                        Integer idx = cols.get(key);
+                        delPages.forEach(page -> secTree.delete(page.attrs.get(idx), page.getID()));
+                    });
+                    delPages.forEach(delPage -> out.println("Page " + delPage + "deleted"));
+                }
             }
         } else {
             throw new SQLException("The type of WHERE clause is not currently supported");

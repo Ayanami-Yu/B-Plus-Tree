@@ -47,7 +47,8 @@ public abstract class Node<K extends Comparable<? super K>, V> {
         }
     }
 
-    int getIdx(K key) {
+    // neg为true时返回如果插入则该键在集合中对应的下标
+    int getIdx(K key, boolean neg) {
         int i = Collections.binarySearch(keys, key);
         if (i >= 0) {
             K tmp = keys.get(i);
@@ -55,7 +56,8 @@ public abstract class Node<K extends Comparable<? super K>, V> {
                 i--;
             }
         }
-        return i >= 0 ? i : -i - 1;
+        if (neg) return i;
+        else return i >= 0 ? i : -i - 1;
     }
 
     @Override
@@ -73,9 +75,9 @@ public abstract class Node<K extends Comparable<? super K>, V> {
 
     abstract Info<V> getRange(K start, K end, int dep);
 
-    abstract Info<V> delete(K key, int loc, int dep);
+    abstract Info<V> delete(K key, V val, int loc, int dep);    // 有重复键时需指定val的值
 
-    abstract Info<V> optimisticDelete(K key, int dep);
+    abstract Info<V> optimisticDelete(K key, V val, int dep);
 
     Status redistribute(int loc) {
         getwLock().lock();

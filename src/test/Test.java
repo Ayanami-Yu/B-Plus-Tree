@@ -6,6 +6,7 @@ import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.expression.operators.relational.LikeExpression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.UseStatement;
@@ -29,13 +30,7 @@ import static java.lang.System.out;
 
 public class Test {
     public static void main(String[] args) throws JSQLParserException {
-        Map<Integer, Integer> map = new HashMap<>();
-        map.put(1, 1);
-
-        map.forEach((key, val) -> {
-            out.println(key);
-        });
-
+        sqlLike();
     }
 
     static void sqlCreate() throws JSQLParserException {
@@ -82,6 +77,7 @@ public class Test {
 
     static void sqlDrop() throws JSQLParserException {
         String s = """
+        out.println(id); // 1
                 drop table music.singers;
                 """;
         Drop drop = (Drop) CCJSqlParserUtil.parse(s);
@@ -153,5 +149,19 @@ public class Test {
         if (expr instanceof EqualsTo eq) {
             out.println(eq.getLeftExpression()); // id
         }
+    }
+
+    static void sqlLike() throws JSQLParserException {
+        String s = """
+                SELECT * FROM Customers
+                WHERE CustomerName LIKE '%a';
+                """;
+        Select select = (Select) CCJSqlParserUtil.parse(s);
+        LikeExpression like = (LikeExpression) select.getPlainSelect().getWhere();
+        out.println(like.getLikeKeyWord());
+        out.println(like.getEscape());
+        out.println(like);
+        out.println(like.getLeftExpression());
+        out.println(like.getRightExpression());
     }
 }

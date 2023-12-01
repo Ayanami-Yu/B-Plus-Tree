@@ -23,6 +23,8 @@ public class Finalizer {
 
             // 注意是重写磁盘上存储数据的文件
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+
+                // 若树已被删空则数据会被空白的新文件覆盖
                 if (!table.tree.isEmpty()) {
                     List<Page> pages = table.tree.getRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
                     for (Page page : pages) {

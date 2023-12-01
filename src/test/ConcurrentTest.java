@@ -11,6 +11,44 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ConcurrentTest {
+    Integer FACTOR = 10, NUM = 1000;
+
+    @Test
+    void concurrentInsert() throws InterruptedException {
+        Tree<Integer, Integer> t = new Tree<>(FACTOR);
+        Thread t1 = new Thread(() -> { for (int i = 1; i <= NUM; i++) t.insert(i, i);});
+        Thread t2 = new Thread(() -> { for (int i = NUM + 1; i <= 2 * NUM; i++) t.insert(i, i);});
+        Thread t3 = new Thread(() -> { for (int i = 2 * NUM + 1; i <= 3 * NUM; i++) t.insert(i, i);});
+        Thread t4 = new Thread(() -> { for (int i = 3 * NUM + 1; i <= 4 * NUM; i++) t.insert(i, i);});
+        Thread t5 = new Thread(() -> { for (int i = 4 * NUM + 1; i <= 5 * NUM; i++) t.insert(i, i);});
+
+        long start = System.nanoTime();
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+        t5.start();
+        t1.join();
+        t2.join();
+        t3.join();
+        t4.join();
+        t5.join();
+        long end = System.nanoTime();
+        System.out.println(end - start);
+    }
+
+    @Test
+    void serialInsert() throws InterruptedException {
+        Tree<Integer, Integer> k = new Tree<>(FACTOR);
+        Thread t0 = new Thread(() -> {for (int i = 1; i <= 5 * NUM; i++) k.insert(i, i);});
+
+        long start = System.nanoTime();
+        t0.start();
+        t0.join();
+        long end = System.nanoTime();
+        System.out.println(end - start);
+    }
+
     @Test
     void test() throws InterruptedException {
         Tree<Integer, Integer> t = new Tree<>(5);
@@ -18,6 +56,7 @@ public class ConcurrentTest {
         Thread t1 = new Thread(() -> testInsert2(t));
         Thread t2 = new Thread(() -> testInsert3(t));
         Thread t3 = new Thread(() -> testInsert4(t));
+        long start = System.nanoTime();
         t0.start();
         t1.start();
         t2.start();
@@ -35,7 +74,9 @@ public class ConcurrentTest {
         t4.join();
         t5.join();
         t6.join();
+        long end = System.nanoTime();
         System.out.println(t);
+        System.out.println(end - start);
     }
 
     @Test

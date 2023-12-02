@@ -84,11 +84,11 @@ public abstract class Node<K extends Comparable<? super K>, V> {
         try {
             Node<K, V> leNode = null, riNode = null;
             Status st;
-            if (loc > 0) leNode = parent.children.get(loc - 1); // todo 可能为根
-            if (loc < parent.children.size() - 1)
+            if (loc > 0) leNode = parent.children.get(loc - 1); // 若左边有兄弟结点
+            if (loc < parent.children.size() - 1)               // 若右边有兄弟结点
                 riNode = parent.children.get(loc + 1);
 
-            if (leNode != null && leNode.safeForDelete()) {
+            if (leNode != null && leNode.safeForDelete()) {     // 若左兄弟非空且不会下溢
                 st = borrow(leNode, loc, true);
             } else if (riNode != null && riNode.safeForDelete()) {
                 st = borrow(riNode, loc, false);

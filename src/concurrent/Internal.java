@@ -13,7 +13,7 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
     @Override
     Status optimisticInsert(K key, V val, int dep) {
         getrLock().lock();
-        if (dep == 0 && this != tree.root.get()) {
+        if (dep == 0 && this != tree.root.get()) {    // 若该结点已不是根结点
             getrLock().unlock();
             return Status.RETRY;
         }
@@ -82,12 +82,12 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
 
     @Override
     Info<V> get(K key, int dep) {
-        getrLock().lock();
+        getrLock().lock();          // 获取本结点读锁
         if (dep == 0 && this != tree.root.get()) {
             getrLock().unlock();
             return new Info<>(Status.RETRY, null);
         } else {
-            if (dep != 0) parent.getrLock().unlock();
+            if (dep != 0) parent.getrLock().unlock();    // 若非根结点则解锁父结点
 
             int idx = getIdx(key, false);
             return children.get(idx).get(key, dep + 1);
@@ -125,18 +125,18 @@ public class Internal<K extends Comparable<? super K>, V> extends Node<K, V> {
                 if (dep == 0 && keys.isEmpty()) {    // 空的根结点
                     children.get(0).getwLock().lock();
                     try {
-                        children.get(0).parent = null;
+                        children.get(0).parent = null;    // 将根结点设置为唯一的子结点
                         tree.root.set(children.get(0));
                     } finally {
                         children.get(0).getwLock().unlock();
                     }
                 } else if (dep != 0 && isUnderflow()) {
-                    info = new Info<>(redistribute(loc));
+                    info = new Info<>(redistribute(loc), info.val);    // 注意不要覆盖子结点返回的结果
                 }
             }
             return info;
         } finally {
-            if (getLock().isWriteLockedByCurrentThread())
+            if (getLock().isWriteLockedByCurrentThread())    // 若未被子结点解锁
                 getwLock().unlock();
         }
     }

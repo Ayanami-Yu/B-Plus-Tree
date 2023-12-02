@@ -55,11 +55,11 @@ public class Test {
     }
 
     static void sqlInsert() throws JSQLParserException {
-        String s2 = """
+        String s = """
                 insert into music.singers (id, name, genre)
                 values (1, 'David Bowie', 'Glam');
                 """;
-        Insert insert = (Insert) CCJSqlParserUtil.parse(s2);
+        Insert insert = (Insert) CCJSqlParserUtil.parse(s);
         out.println(insert.getColumns().get(0)); // id
         out.println(insert.getColumns().size()); // 3
         out.println(insert.getValues().getExpressions().size()); // 3

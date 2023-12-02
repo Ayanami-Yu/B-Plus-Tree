@@ -94,12 +94,12 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
 
     @Override
     Info<V> get(K key, int dep) {
-        getrLock().lock();
+        getrLock().lock();                                  // 获取本结点读锁
         try {
             if (dep == 0 && this != tree.root.get()) {
                 return new Info<>(Status.RETRY, null);
             } else {
-                if (dep != 0) parent.getrLock().unlock();
+                if (dep != 0) parent.getrLock().unlock();   // 若父结点存在则解锁父结点
 
                 int idx = getIdx(key, true);
                 if (idx >= 0) {
@@ -107,7 +107,7 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
                 } else return new Info<>(Status.NOT_EXIST, null);
             }
         }finally {
-            getrLock().unlock();
+            getrLock().unlock();                            // 解锁本结点
         }
     }
 
@@ -130,15 +130,15 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
 
     @Override
     Info<V> delete(K key, V val, int loc, int dep) {
-        getwLock().lock();
+        getwLock().lock();    // 获取该结点写锁
         Info<V> info;
         try {
             if (dep == 0 && this != tree.root.get()) {
                 info = new Info<>(Status.RETRY);
-            } else if (dep == 0 && keys.isEmpty()) {
+            } else if (dep == 0 && keys.isEmpty()) {    // 已经是空树
                 info = new Info<>(Status.EMPTY);
             } else {
-                if (safeForDelete()) unlockAncestors();
+                if (safeForDelete()) unlockAncestors();    // 解锁祖先
 
                 int idx = getIdx(key, true);
                 if (idx < 0) {
@@ -263,8 +263,14 @@ public class Leaf<K extends Comparable<? super K>, V> extends Node<K, V> {
         return Status.SUCCESS;
     }
 
-
-    // 闭区间，同时取到start和end对应的值
+    /**
+     * 闭区间，同时取到start和end对应的值
+     * @param start     左端点键
+     * @param end       右端点键
+     * @param preLeaf   前一个结点
+     * @param res       结果数组
+     * @param seq       在该次递归中的序号
+     */
     void getList(K start, K end, Leaf<K, V> preLeaf, List<V> res, int seq) {
         int from, to;
         if (seq == 0) {

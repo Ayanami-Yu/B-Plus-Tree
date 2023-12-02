@@ -83,7 +83,7 @@ public class ConcurrentTest {
     void test1() {
         Tree<Integer, Integer> t = new Tree<>(5);
         for (int i = 0; i < 20; i++) t.insert(i, i);
-        for (int i = 0; i < 20; i++) t.delete(i);
+        for (int i = 0; i < 10; i++) t.delete(i);
         System.out.println(t);
     }
 

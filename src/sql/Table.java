@@ -304,7 +304,7 @@ public class Table {    // 一张表就是一棵以主键id为key的树
                     Integer colIdx = getColIdx(colName);
 
                     pages.forEach(page -> {
-                        if (page.attrs.get(colIdx).equals(colVal)) {
+                        if (page.attrs.get(colIdx).equals(colVal)) {        // 若该记录的对应属性符合条件
                             delPages.add(tree.delete(page.getID()).val);    // id不会重复
                         }
                     });

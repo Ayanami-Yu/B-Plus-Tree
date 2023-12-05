@@ -274,7 +274,8 @@ public class Table {    // 一张表就是一棵以主键id为key的树
                 });
                 out.println("Page " + delPage + "deleted");
             } else {
-                if (secTrees.containsKey(colName)) {    // 若删除的是其他列则最高效的方式是先回表
+                // 若含有以该列名为键的副键树
+                if (secTrees.containsKey(colName)) {        // 若删除的是其他列则最高效的方式是先回表
                     List<Integer> ids = new ArrayList<>();
                     Info<Integer> info;
                     while (true) {
@@ -299,9 +300,11 @@ public class Table {    // 一张表就是一棵以主键id为key的树
                     delPages.forEach(delPage -> out.println("Page " + delPage + "deleted"));
 
                 } else {    // 若没有为colName对应的列建立索引
-                    List<Page> delPages = new ArrayList<>();
+                    List<Page> delPages = new ArrayList<>();                // 存储被删除的记录
+
+                    // 获取所有主键树的叶结点
                     List<Page> pages = tree.getRange(Integer.MIN_VALUE, Integer.MAX_VALUE);
-                    Integer colIdx = getColIdx(colName);
+                    Integer colIdx = getColIdx(colName);                    // 获取列名对应的attrs数组下标
 
                     pages.forEach(page -> {
                         if (page.attrs.get(colIdx).equals(colVal)) {        // 若该记录的对应属性符合条件
@@ -312,7 +315,7 @@ public class Table {    // 一张表就是一棵以主键id为key的树
                         throw new SQLException("No records matched");
                     }
 
-                    secTrees.forEach((key, secTree) -> {
+                    secTrees.forEach((key, secTree) -> {                    // （列名，副键树）
                         Integer idx = cols.get(key);
                         delPages.forEach(page -> secTree.delete(page.attrs.get(idx), page.getID()));
                     });

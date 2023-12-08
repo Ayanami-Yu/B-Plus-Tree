@@ -15,7 +15,7 @@ import static java.lang.System.out;
 import static sql.parser.Parser.path;
 
 public class Initializer {
-    static void openSchemata() {
+    public static void openSchemata() {
         File db = new File(Parser.path);
         File[] schemata = db.listFiles(); // 打开DB文件夹下的所有子文件夹
 

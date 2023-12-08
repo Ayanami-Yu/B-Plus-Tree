@@ -99,3 +99,10 @@ DELETE FROM schema_name.table_name;
 ```
 
 This will delete all records in the specified table, but its structure like columns and secondary indices (though without any record) will remain intact. 
+
+## PhoneBook Usage
+1. Both name and address should contain English letter only.
+2. You can insert or delete a person's information.
+3. If you want to update an existing record, just insert the whole record again with updated information.
+
+The path of database storage is `./DB/phone_book`, with schema name and table name as `phone_book` and `dir` respectively.

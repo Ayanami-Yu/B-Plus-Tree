@@ -12,7 +12,7 @@ import static sql.parser.Parser.schemata;
 
 public class Finalizer {
 
-    static void saveDataOnDisk() {
+    public static void saveDataOnDisk() {
         schemata.forEach((schemaName, schema) -> saveDataInSchema(schema));
         out.println("Data successfully saved on disk");
     }

@@ -31,6 +31,7 @@ public class Tree<K extends Comparable<? super K>, V> {
         }
     }
 
+    // 当键不存在时返回null
     public V get(K key) {
         Info<V> info;
         do {
